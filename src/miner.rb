@@ -2,7 +2,7 @@ require 'gh-archive'
 
 class Miner
   def initialize
-    @provider = OnlineGHAProvider.new
+    @provider = GHArchive::OnlineProvider.new
     @provider.include(type: 'PushEvent')
     @provider.exclude(payload: nil)
 
@@ -10,10 +10,10 @@ class Miner
   end
 
   def mine
-    @provider.each(Time.gm(2015, 1, 1), Time.gm(2015, 1, 2)) do |event|
-      result = event['payload']['commits'].map { |c| c['author']['name'] }.uniq.join(", ")
-      puts result
-      return result
+    result = []
+    @provider.each(Time.gm(2021, 1, 1, 0, 0, 0), Time.gm(2021, 1, 1, 2, 0, 0)) do |event|
+      result.push(event['payload']['commits'].map { |c| c['author']['name'] }.uniq.join(", "))
     end
+    result
   end
 end

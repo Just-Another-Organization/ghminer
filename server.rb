@@ -9,7 +9,7 @@ end
 
 if defined?(Sinatra::Reloader)
   puts 'Enabling Sinatra Reloading'
-  also_reload './src'
+  also_reload './src/*'
   # dont_reload '/path/to/other/file'
   after_reload do
     puts 'Change detected: Sinatra reloaded'
