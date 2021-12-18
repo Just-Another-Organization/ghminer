@@ -22,6 +22,8 @@ GEM
     async-pool (0.3.9)
       async (>= 1.25)
     build-environment (1.13.0)
+    code-assertions (1.1.3)
+      sourcify (~> 0.5.0, >= 0.5.0)
     console (1.14.0)
       fiber-local
     daemons (1.4.1)
@@ -39,6 +41,11 @@ GEM
       rack (>= 1.0)
       samovar (~> 2.1)
     fiber-local (1.0.0)
+    file-tail (1.2.0)
+      tins (~> 1.0)
+    gh-archive (0.17)
+      code-assertions (~> 1.1.2, >= 1.1.2)
+      thread (~> 0.2.2, >= 0.2.2)
     localhost (1.1.9)
     mapping (1.1.1)
     mustermann (1.1.1)
@@ -60,20 +67,35 @@ GEM
     rack-protection (2.1.0)
       rack
     ruby2_keywords (0.0.5)
+    ruby2ruby (2.4.4)
+      ruby_parser (~> 3.1)
+      sexp_processor (~> 4.6)
+    ruby_parser (3.18.1)
+      sexp_processor (~> 4.16)
     samovar (2.1.4)
       console (~> 1.0)
       mapping (~> 1.0)
+    sexp_processor (4.16.0)
     sinatra (2.1.0)
       mustermann (~> 1.0)
       rack (~> 2.2)
       rack-protection (= 2.1.0)
       tilt (~> 2.0)
+    sourcify (0.5.0)
+      file-tail (>= 1.0.5)
+      ruby2ruby (>= 1.2.5)
+      ruby_parser (>= 2.0.5)
+      sexp_processor (>= 3.0.5)
+    sync (0.5.0)
     thin (1.8.1)
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
       rack (>= 1, < 3)
+    thread (0.2.2)
     tilt (2.0.10)
     timers (4.3.3)
+    tins (1.29.1)
+      sync
     webrick (1.7.0)
 
 PLATFORMS
@@ -82,6 +104,7 @@ PLATFORMS
 DEPENDENCIES
   eventmachine
   falcon
+  gh-archive
   puma
   rack
   sinatra

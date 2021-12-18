@@ -6,4 +6,5 @@ gem 'thin'
 gem 'falcon'
 gem 'webrick'
 gem 'eventmachine'
-gem "sinatra"
+gem 'sinatra'
+gem 'gh-archive'

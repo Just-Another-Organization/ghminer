@@ -5,7 +5,7 @@ require_relative "lib/ja_ghminer/version"
 Gem::Specification.new do |spec|
   spec.name = "ja_ghminer"
   spec.version = JaGhminer::VERSION
-  spec.authors = ["zappaboy"]
+  spec.authors = ["ZappaBoy"]
   spec.email = ["federico_zappone@hotmail.it"]
 
   spec.summary = "Just Another GitHub Miner"
