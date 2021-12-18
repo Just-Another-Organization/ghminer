@@ -5,5 +5,7 @@ services:
     container_name: ja-ghminer
     restart: unless-stopped
     build: .
+    env_file:
+      - .env
     ports:
       - "${PORT}:4567"

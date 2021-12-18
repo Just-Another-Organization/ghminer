@@ -48,6 +48,7 @@ GEM
       thread (~> 0.2.2, >= 0.2.2)
     localhost (1.1.9)
     mapping (1.1.1)
+    multi_json (1.15.0)
     mustermann (1.1.1)
       ruby2_keywords (~> 0.0.1)
     nio4r (2.5.8)
@@ -81,6 +82,12 @@ GEM
       rack (~> 2.2)
       rack-protection (= 2.1.0)
       tilt (~> 2.0)
+    sinatra-contrib (2.1.0)
+      multi_json
+      mustermann (~> 1.0)
+      rack-protection (= 2.1.0)
+      sinatra (= 2.1.0)
+      tilt (~> 2.0)
     sourcify (0.5.0)
       file-tail (>= 1.0.5)
       ruby2ruby (>= 1.2.5)
@@ -108,6 +115,7 @@ DEPENDENCIES
   puma
   rack
   sinatra
+  sinatra-contrib
   thin
   webrick
 
