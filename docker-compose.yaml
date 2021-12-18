@@ -1,0 +1,9 @@
+version: "3.8"
+services:
+  app:
+    image: ja-ghminer:latest
+    container_name: ja-ghminer
+    restart: unless-stopped
+    build: .
+    ports:
+      - "${PORT}:4567"
