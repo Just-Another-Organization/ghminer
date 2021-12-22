@@ -9,3 +9,30 @@ services:
       - .env
     ports:
       - "${PORT}:4567"
+    links:
+      - mongodb
+    networks:
+        - mongo-net
+
+  mongodb:
+    image: 'mongo:5.0.5'
+    container_name: ja-ghminer-database
+    restart: always
+    ports:
+      - '27017:27017'
+    env_file:
+      - .env
+    environment:
+      - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    volumes:
+      - './volumes/database-volume:/data/db'
+    networks:
+      - mongo-net
+volumes:
+  mongodb_data:
+    driver: local
+
+networks:
+  mongo-net:

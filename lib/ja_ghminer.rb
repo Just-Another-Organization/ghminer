@@ -4,6 +4,4 @@ require_relative "ja_ghminer/version"
 
 module JaGhminer
   class Error < StandardError; end
-
-  # Your code goes here...
 end

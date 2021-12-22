@@ -3,11 +3,13 @@ require 'sinatra/reloader' if development?
 require './src/miner'
 require 'json'
 
+
 before do
   content_type :json
 end
 
 if defined?(Sinatra::Reloader)
+  puts 'JA_MINER'
   puts 'Enabling Sinatra Reloading'
   also_reload './src/*'
   # dont_reload '/path/to/other/file'
@@ -22,6 +24,6 @@ end
 
 get '/test' do
   miner = Miner.new
-  result = miner.mine
-  halt 200, { result: result }.to_json
+  miner.mine
+  halt 200, { result: 'OK' }.to_json
 end
