@@ -2,6 +2,7 @@ require 'sinatra'
 require 'sinatra/reloader' if development?
 require './src/miner'
 require 'json'
+require 'mongoid'
 
 
 before do
@@ -10,6 +11,7 @@ end
 
 if defined?(Sinatra::Reloader)
   puts 'JA_MINER'
+  Mongoid.load!(File.join(File.dirname(__FILE__), 'config', 'mongoid.yml'))
   puts 'Enabling Sinatra Reloading'
   also_reload './src/*'
   # dont_reload '/path/to/other/file'
