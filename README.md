@@ -6,7 +6,17 @@ Welcome to your new gem! In this directory, you'll find the files you need to be
 into a gem. Put your Ruby code in the file `lib/ja_ghminer`. To experiment with that code, run `bin/console` for an
 interactive prompt.
 
-TODO: Delete this and the text above, and describe your gem
+## .env file
+
+First of all you need to create a `.env` file. Here you can set your configuration. Here is an example:
+
+```shell
+PORT=4567
+RACK_ENV=production
+MONGO_INITDB_DATABASE=ja_ghminer
+MONGO_INITDB_ROOT_USERNAME=ja_username
+MONGO_INITDB_ROOT_PASSWORD=ja_password
+```
 
 ## Installation
 

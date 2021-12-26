@@ -2,7 +2,7 @@ version: "3.8"
 services:
   app:
     image: ja-ghminer:latest
-    container_name: ja-ghminer
+    container_name: ja_ghminer
     restart: unless-stopped
     build: .
     env_file:
@@ -12,20 +12,14 @@ services:
     links:
       - mongodb
     networks:
-        - mongo-net
+      - mongo-net
 
   mongodb:
-    image: 'mongo:5.0.5'
-    container_name: ja-ghminer-database
-    restart: always
-    ports:
-      - '27017:27017'
+    image: 'mongo:latest'
+    container_name: ja_ghminer_database
+    restart: unless-stopped
     env_file:
       - .env
-    environment:
-      - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - './volumes/database-volume:/data/db'
     networks:
