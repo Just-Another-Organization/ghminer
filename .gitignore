@@ -248,3 +248,4 @@ modules.xml
 /config/master.key
 
 volumes/database-volume/**
+logs/**

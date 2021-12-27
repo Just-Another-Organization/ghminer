@@ -3,6 +3,7 @@ require 'sinatra/reloader' if development?
 require './src/miner'
 require 'json'
 require 'mongoid'
+require 'logger'
 
 CONFIG_BASE_PATH = File.join(File.dirname(__FILE__), 'config')
 MONGOID_CONFIG_PATH = File.join(CONFIG_BASE_PATH, 'mongoid.yml')
@@ -20,6 +21,7 @@ if defined?(Sinatra::Reloader)
 end
 
 puts 'JA-GHMiner starting'
+Dir.mkdir('logs') unless FileTest.exist?('logs')
 Mongoid.load!(MONGOID_CONFIG_PATH)
 
 get '/health' do

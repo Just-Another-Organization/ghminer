@@ -5,6 +5,8 @@ services:
     container_name: ja_ghminer
     restart: unless-stopped
     build: .
+    volumes:
+      - './logs:/app/logs'
     env_file:
       - .env
     ports:
@@ -20,6 +22,8 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    ports:
+      - "27017:27017"
     volumes:
       - './volumes/database-volume:/data/db'
     networks:
