@@ -23,5 +23,10 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
-      - name: Run the default task
-        run: bundle exec rake
+      - name: Run security checks
+        run: |
+          bin/bundler-audit --update
+          bin/brakeman -q -w2
+      - name: Run linters
+        run: |
+          bin/rubocop --parallel
