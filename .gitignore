@@ -1,6 +1,8 @@
 .idea
 .env
 
+*.log
+
 /.bundle/
 /.yardoc
 /_yardoc/
@@ -36,8 +38,8 @@ pickle-email-*.html
 !/tmp/.keep
 
 # TODO Comment out this rule if you are OK with secrets being uploaded to the repo
-config/initializers/secret_token.rb
-config/master.key
+lib/config/initializers/secret_token.rb
+lib/config/master.key
 
 # Only include if you have production secrets in this file, which is no longer a Rails default
 # config/secrets.yml
@@ -245,7 +247,7 @@ modules.xml
 !/tmp/storage/.keep
 
 # Ignore master key for decrypting credentials and more.
-/config/master.key
+/lib/config/master.key
 
 volumes/database-volume/**
 logs/**

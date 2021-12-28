@@ -6,18 +6,14 @@ require 'yaml'
 
 class Commit
   include Mongoid::Document
-  field :sha, type: String
-  field :author do
-    field :email, type: String
-    field :name, type: String
-  end
+  field :author, type: String
   field :message, type: String
-  field :distinct, type: Boolean
   field :url, type: String
 end
 
 class Miner
   def initialize(config_path = '')
+    @logger = Logger.new('logs/mining.log')
     @provider = GHArchive::OnlineProvider.new
     @provider.include(type: 'PushEvent')
     @provider.exclude(payload: nil)
@@ -29,8 +25,10 @@ class Miner
       puts 'Config file not found, using default configurations'
     end
 
-    @starting_timestamp = @config['starting_timestamp'] || Time.now - 3600 # last hour
-    @ending_timestamp = @config['ending_timestamp'] || Time.now
+    now = Time.now
+    last_hour_timestamp = now - (now.to_f % 3600)
+    @starting_timestamp = @config['starting_timestamp'] || last_hour_timestamp - 3600 # last passed hour
+    @ending_timestamp = @config['ending_timestamp'] || last_hour_timestamp
     @continuously_updated = @config['continuously_updated'] || false
     @max_dimension = @config['max_dimension'] || 0
     @last_update_timestamp = @config['last_update_timestamp'] || 0
@@ -39,13 +37,21 @@ class Miner
     puts 'Miner ready!'
   end
 
+  def logger=(logger)
+    @logger = logger
+  end
+
   def mine
+    block_counter = 0
     puts 'Mining....'
     @provider.each(Time.at(@starting_timestamp), Time.at(@ending_timestamp)) do |event|
-      puts event
-      break
+      event['payload']['commits'].map do |c|
+        Commit.create({ author: c['author']['name'], message: c['message'], url: c['url'] })
+      end
+      block_counter += 1
     end
     puts 'Mining finish!!!'
+    @logger.info("Finish mining | Total Block: #{block_counter}")
   end
 
   def query(query, result_limit = 0)

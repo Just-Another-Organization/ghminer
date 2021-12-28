@@ -12,6 +12,11 @@ production:
 development:
   clients:
     default:
-      uri: mongodb://jaminer:password@mongodb:27017/ja-archive?retryWrites=true&w=majority&authSource=admin
+      database: <%= ENV['MONGO_INITDB_DATABASE'] %>
+      hosts:
+        - mongodb:27017
       options:
         server_selection_timeout: 5
+        user: <%= ENV['MONGO_INITDB_ROOT_USERNAME'] %>
+        password: <%= ENV['MONGO_INITDB_ROOT_PASSWORD'] %>
+        auth_source: admin
