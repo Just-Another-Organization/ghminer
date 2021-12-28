@@ -4,11 +4,43 @@ require 'gh-archive'
 require 'mongoid'
 require 'yaml'
 
+class Event
+  include Mongoid::Document
+  field :event_id
+  field :id
+  embeds_one :repo
+  embeds_one :payload
+  field :created_at, type: Time
+  index({ event_id: 1 }, { unique: true })
+end
+
+class Repo
+  include Mongoid::Document
+  field :id, type: String
+  field :name, type: String
+end
+
+class Payload
+  include Mongoid::Document
+  field :push_id, type: Numeric
+  field :size, type: Numeric
+  field :distinct_size, type: Numeric
+  field :ref, type: String
+  field :head, type: String
+  field :before, type: String
+  embeds_many :commits
+end
+
 class Commit
   include Mongoid::Document
-  field :author, type: String
+  field :sha, type: String
   field :message, type: String
-  field :url, type: String
+  embeds_many :author
+end
+
+class Author
+  include Mongoid::Document
+  field :name, type: String
 end
 
 class Miner
@@ -45,9 +77,9 @@ class Miner
     block_counter = 0
     puts 'Mining....'
     @provider.each(Time.at(@starting_timestamp), Time.at(@ending_timestamp)) do |event|
-      event['payload']['commits'].map do |c|
-        Commit.create({ author: c['author']['name'], message: c['message'], url: c['url'] })
-      end
+      new_event = Event.new
+      new_event.attributes = event.reject { |k, v| !new_event.attributes.keys.member?(k.to_s) } # remove untracked properties
+      Event.create(new_event.attributes)
       block_counter += 1
     end
     puts 'Mining finish!!!'
@@ -56,7 +88,7 @@ class Miner
 
   def query(query, result_limit = 0)
     puts 'Querying....'
-    Commit.where(query).limit(result_limit)
+    Event.where(query).limit(result_limit)
   end
 
   def print_configs
