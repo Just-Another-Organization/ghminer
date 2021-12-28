@@ -3,3 +3,4 @@ miner:
   ending_timestamp:
   continuously_updated: true
   max_dimension: 3
+  last_update_timestamp:

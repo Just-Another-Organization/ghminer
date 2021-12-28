@@ -33,6 +33,7 @@ class Miner
     @ending_timestamp = @config['ending_timestamp'] || Time.now
     @continuously_updated = @config['continuously_updated'] || false
     @max_dimension = @config['max_dimension'] || 0
+    @last_update_timestamp = @config['last_update_timestamp'] || 0
 
     print_configs
     puts 'Miner ready!'
@@ -59,6 +60,7 @@ starting_timestamp: #{@starting_timestamp}
 ending_timestamp: #{@ending_timestamp}
 continuously_updated: #{@continuously_updated}
 max_dimension: #{@max_dimension}
+last_update_timestamp: #{@last_update_timestamp}
 ##### END CONFIG #####
 
 }
