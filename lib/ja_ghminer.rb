@@ -31,8 +31,11 @@ miner.mine
 query = {}
 result_limit = 3
 result = miner.query(query, result_limit)
-puts result[0]
+# result = miner.find(query)
+# result = miner.get_all
 puts result
+puts result[0]
+# puts result
 
 get '/health' do
   halt 200, { status: 'Alive' }.to_json

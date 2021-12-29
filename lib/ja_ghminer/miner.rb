@@ -6,12 +6,11 @@ require 'yaml'
 
 class Event
   include Mongoid::Document
-  field :event_id
-  field :id
+  field :event_id, type: String
+  field :id, type: String
   embeds_one :repo
   embeds_one :payload
   field :created_at, type: Time
-  index({ event_id: 1 }, { unique: true })
 end
 
 class Repo
@@ -77,9 +76,34 @@ class Miner
     block_counter = 0
     puts 'Mining....'
     @provider.each(Time.at(@starting_timestamp), Time.at(@ending_timestamp)) do |event|
-      new_event = Event.new
-      new_event.attributes = event.reject { |k, v| !new_event.attributes.keys.member?(k.to_s) } # remove untracked properties
-      Event.create(new_event.attributes)
+
+      Event.new(
+        id => event['id'],
+        repo => {
+          id => event['repo']['id'],
+          name => event['repo']['name']
+        },
+        payload => {
+          push_id => event['payload']['push_id'],
+          size => event['payload']['size'],
+          distinct_size => event['payload']['distinct_size'],
+          ref => event['payload']['ref'],
+          head => event['payload']['head'],
+          before => event['payload']['before'],
+          commits => [
+            {
+              sha => event['payload']['commits'][0]['sha'],
+              author => {
+                name => event['payload']['commits'][0]['author']['name']
+              },
+              message => event['payload']['commits'][0]['author']['message'],
+            }
+          ]
+        },
+        created_at => event['created_at']
+      )
+      puts Event
+      break
       block_counter += 1
     end
     puts 'Mining finish!!!'
@@ -88,7 +112,17 @@ class Miner
 
   def query(query, result_limit = 0)
     puts 'Querying....'
-    Event.where(query).limit(result_limit)
+    Event.where(query).limit(result_limit).to_a
+  end
+
+  def find(query, result_limit = 0)
+    puts 'Querying....'
+    Event.find(query)
+  end
+
+  def get_all
+    puts 'Querying....'
+    Event.all
   end
 
   def print_configs
