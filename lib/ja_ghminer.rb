@@ -28,14 +28,8 @@ puts 'JA-GHMiner starting'
 Mongoid.load!(MONGOID_CONFIG_PATH, ENVIRONMENT)
 miner = Miner.new(MINER_CONFIG_PATH)
 miner.mine
-query = {}
-result_limit = 3
-result = miner.query(query, result_limit)
-# result = miner.find(query)
-# result = miner.get_all
-puts result
-puts result[0]
-# puts result
+result = miner.first
+puts result.as_json
 
 get '/health' do
   halt 200, { status: 'Alive' }.to_json
