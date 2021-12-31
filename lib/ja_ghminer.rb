@@ -33,6 +33,28 @@ get '/health' do
 end
 
 get '/test' do
-  result = miner.first.to_json
+  result = miner.first
+  halt 200, { result: result }.to_json
+end
+
+get '/query' do
+  params = JSON.parse request.body.read
+  query = params['query']
+  limit = params['limit']
+
+  puts query
+  puts limit
+
+  result = miner.query(query, limit)
+  halt 200, { result: result }.to_json
+end
+
+get '/query-regex' do
+  params = JSON.parse request.body.read
+  field = params['field']
+  limit = params['limit']
+  regex = params['regex']
+
+  result = miner.query_regex(field, regex, limit)
   halt 200, { result: result }.to_json
 end

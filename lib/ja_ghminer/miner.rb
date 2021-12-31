@@ -6,13 +6,11 @@ require 'rufus-scheduler'
 
 class Event
   include Mongoid::Document
-  field :event_id, type: Numeric
   field :id, type: String
   embeds_one :repo
   embeds_one :payload
   field :created_at, type: Time
 
-  index({ event_id: 1 }, { unique: true, name: "event_id_index" })
   index({ id: 1 }, { unique: true, name: "id_index" })
 end
 
@@ -51,14 +49,13 @@ class Miner
 
   def initialize(config_path = '')
     @config_path = config_path
-    # @logger = Logger.new('logs/mining.log')
-    @logger = Logger.new(STDOUT)
+    @logger = Logger.new('logs/mining.log')
 
     if File.file?(config_path)
       @logger.info("Loading configurations: #{config_path}")
       @config = YAML.load_file(config_path)
     else
-      @logger.info('Config file not found, using default configurations')
+      @logger.warn('Config file not found, using default configurations')
     end
 
     now = Time.now.to_i
@@ -78,7 +75,7 @@ class Miner
       starting_timestamp = @last_update_timestamp
     end
 
-    mine(Time.at(starting_timestamp), Time.at(ending_timestamp))
+    mine(starting_timestamp, ending_timestamp)
 
     if continuously_updated
       set_continuously_update(schedule_interval)
@@ -97,17 +94,14 @@ class Miner
   end
 
   def mine (starting_timestamp, ending_timestamp)
+    @logger.info('Mining started')
+
     provider = GHArchive::OnlineProvider.new
     provider.include(type: 'PushEvent')
     provider.exclude(payload: nil)
-    events_counter = get_events_number
-
-    @logger.info('Mining started')
-    @logger.info("Stored events: #{events_counter}")
 
     provider.each(Time.at(starting_timestamp), Time.at(ending_timestamp)) do |event|
       new_event = {
-        event_id: events_counter,
         id: event['id'],
         repo: {
           id: event['repo']['id'],
@@ -135,7 +129,6 @@ class Miner
       }
 
       Event.create(new_event)
-      events_counter += 1
     end
 
     update_events # Necessary in case new events were generated during the initial mining process
@@ -184,6 +177,14 @@ class Miner
     Event.where(query).limit(result_limit)
   end
 
+  def query_regex(field, regex, result_limit = 0)
+    @logger.info("Querying regex: #{field}, #{regex}, limit: #{result_limit}")
+    regexp = Regexp.new(regex, true)
+    pattern = {}
+    pattern[field] = regexp
+    Event.where(pattern).limit(result_limit)
+  end
+
   def find(query)
     @logger.info("Querying find: #{query}")
     Event.find(query)
@@ -201,13 +202,14 @@ class Miner
 
   def print_configs(miner_config)
     @logger.info(%{
-##### BEGIN CONFIG #####
-starting_timestamp: #{miner_config['starting_timestamp']}
-ending_timestamp: #{miner_config['ending_timestamp']}
-continuously_updated: #{miner_config['continuously_updated']}
-max_dimension: #{miner_config['max_dimension']}
-last_update_timestamp: #{miner_config['last_update_timestamp']}
-##### END CONFIG #####
+
+          ##### BEGIN CONFIG #####
+          starting_timestamp: #{miner_config['starting_timestamp']}
+          ending_timestamp: #{miner_config['ending_timestamp']}
+          continuously_updated: #{miner_config['continuously_updated']}
+          max_dimension: #{miner_config['max_dimension']}
+          last_update_timestamp: #{miner_config['last_update_timestamp']}
+          ##### END CONFIG #####
 
 })
   end
