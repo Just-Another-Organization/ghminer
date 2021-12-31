@@ -1,6 +1,8 @@
+---
 miner:
   starting_timestamp:
   ending_timestamp:
   continuously_updated: true
   max_dimension: 3
-  last_update_timestamp:
+  last_update_timestamp: 1640917050
+  schedule_interval: 1h

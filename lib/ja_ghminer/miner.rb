@@ -1,6 +1,8 @@
 require 'gh-archive'
 require 'mongoid'
 require 'yaml'
+require 'logger'
+require 'rufus-scheduler'
 
 class Event
   include Mongoid::Document
@@ -10,8 +12,8 @@ class Event
   embeds_one :payload
   field :created_at, type: Time
 
-  # index({ event_id: 1}, { unique: true, name: "event_id_index"})
-  # index({ id: 1}, { unique: true, name: "id_index"})
+  index({ event_id: 1 }, { unique: true, name: "event_id_index" })
+  index({ id: 1 }, { unique: true, name: "id_index" })
 end
 
 class Repo
@@ -44,41 +46,66 @@ class Author
 end
 
 class Miner
-  TOLERANCE_MINUTES = 60 * 5 # five minutes
+  TOLERANCE_MINUTES = 60 * 10 # ten minutes
+  A_HOUR = 60 * 60
 
   def initialize(config_path = '')
-    @logger = Logger.new('logs/mining.log')
+    @config_path = config_path
+    # @logger = Logger.new('logs/mining.log')
+    @logger = Logger.new(STDOUT)
     @provider = GHArchive::OnlineProvider.new
     @provider.include(type: 'PushEvent')
     @provider.exclude(payload: nil)
 
     if File.file?(config_path)
-      puts "Loading configurations: #{config_path}"
-      @config = YAML.load_file(config_path)['miner']
+      @logger.info("Loading configurations: #{config_path}")
+      @config = YAML.load_file(config_path)
     else
-      puts 'Config file not found, using default configurations'
+      @logger.info('Config file not found, using default configurations')
     end
 
-    now = Time.now
-    last_hour_timestamp = now - (now.to_f % 3600) - TOLERANCE_MINUTES
-    @starting_timestamp = @config['starting_timestamp'] || last_hour_timestamp - 3600 # last passed hour
-    @ending_timestamp = @config['ending_timestamp'] || last_hour_timestamp
-    @continuously_updated = @config['continuously_updated'] || false
-    @max_dimension = @config['max_dimension'] || 0
-    @last_update_timestamp = @config['last_update_timestamp'] || 0
+    now = Time.now.to_i
+    last_hour_timestamp = now - (now % 3600) - TOLERANCE_MINUTES
+    miner_config = @config['miner']
+    @starting_timestamp = miner_config['starting_timestamp'] || last_hour_timestamp - A_HOUR # last passed hour
+    @ending_timestamp = miner_config['ending_timestamp'] || last_hour_timestamp
+    @continuously_updated = miner_config['continuously_updated'] || false
+    @max_dimension = miner_config['max_dimension'] || 0
+    @last_update_timestamp = miner_config['last_update_timestamp'] || 0
+    @schedule_interval = miner_config['schedule_interval'] || '1h'
 
     print_configs
-    puts 'Miner ready!'
+    @logger.info('Miner ready!')
+
+    if @last_update_timestamp > @starting_timestamp
+      @starting_timestamp = @last_update_timestamp
+    end
+
+    mine(Time.at(@starting_timestamp), Time.at(@ending_timestamp))
+
+    if @continuously_updated
+      set_continuously_update
+    end
+  end
+
+  def set_continuously_update
+    @scheduler = Rufus::Scheduler.new
+    @scheduler.every @schedule_interval do
+      update_events
+    end
   end
 
   def logger=(logger)
     @logger = logger
   end
 
-  def mine
-    events_counter = 1
-    puts 'Mining....'
-    @provider.each(Time.at(@starting_timestamp), Time.at(@ending_timestamp)) do |event|
+  def mine (starting_timestamp, ending_timestamp)
+    events_counter = get_events_number
+
+    @logger.info('Mining started')
+    @logger.info("Stored events: #{events_counter}")
+
+    @provider.each(Time.at(starting_timestamp), Time.at(ending_timestamp)) do |event|
       new_event = {
         event_id: events_counter,
         id: event['id'],
@@ -111,32 +138,56 @@ class Miner
       events_counter += 1
     end
 
-    puts 'Mining finish!!!'
-    @logger.info("Finish mining | Total Block: #{events_counter}")
+    update_events # Necessary in case new events were generated during the initial mining process
+
+    @logger.info('Mining completed')
+    @logger.info("Total Events: #{events_counter}")
+  end
+
+  def write_last_update_timestamp
+    @last_update_timestamp = Time.now.to_i
+    @config['miner']['last_update_timestamp'] = @last_update_timestamp
+    File.open(@config_path, 'w') { |f| f.write @config.to_yaml }
+    @logger.info("Last update: #{Time.at(@last_update_timestamp)}")
+  end
+
+  def update_events
+    if @last_update_timestamp != 0 && @last_update_timestamp < Time.now.to_i - A_HOUR
+      @logger.info("Updating events starting from: #{@last_update_timestamp}")
+      mine(@last_update_timestamp, Time.now)
+      @logger.info('Events update completed')
+    else
+      @logger.info('Events already updated')
+    end
+    write_last_update_timestamp
+  end
+
+  def get_events_number
+    Event.all.count
   end
 
   def query(query, result_limit = 0)
-    puts 'Querying....'
+    @logger.info("Querying find: #{query}, limit: #{result_limit}")
     Event.where(query).limit(result_limit)
   end
 
   def find(query)
-    puts 'Querying....'
+    @logger.info("Querying find: #{query}")
     Event.find(query)
   end
 
   def get_all
-    puts 'Querying....'
+    @logger.info('Querying all')
     Event.all
   end
 
   def first
-    puts 'Querying....'
+    @logger.info('Querying first')
     Event.first
   end
 
   def print_configs
-    puts %{
+    @logger.info(%{
 ##### BEGIN CONFIG #####
 starting_timestamp: #{@starting_timestamp}
 ending_timestamp: #{@ending_timestamp}
@@ -145,7 +196,7 @@ max_dimension: #{@max_dimension}
 last_update_timestamp: #{@last_update_timestamp}
 ##### END CONFIG #####
 
-}
+})
   end
 
 end

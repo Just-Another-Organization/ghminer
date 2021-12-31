@@ -7,6 +7,7 @@ services:
     build: .
     volumes:
       - './logs:/app/logs'
+      - './lib/config/miner.yml:/app/lib/config/miner.yml'
     env_file:
       - .env
     ports:

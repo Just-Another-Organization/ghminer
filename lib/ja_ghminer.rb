@@ -27,14 +27,12 @@ end
 puts 'JA-GHMiner starting'
 Mongoid.load!(MONGOID_CONFIG_PATH, ENVIRONMENT)
 miner = Miner.new(MINER_CONFIG_PATH)
-miner.mine
-result = miner.first
-puts result.as_json
 
 get '/health' do
   halt 200, { status: 'Alive' }.to_json
 end
 
 get '/test' do
-  halt 200, { result: 'OK' }.to_json
+  result = miner.first.to_json
+  halt 200, { result: result }.to_json
 end
