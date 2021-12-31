@@ -53,9 +53,6 @@ class Miner
     @config_path = config_path
     # @logger = Logger.new('logs/mining.log')
     @logger = Logger.new(STDOUT)
-    @provider = GHArchive::OnlineProvider.new
-    @provider.include(type: 'PushEvent')
-    @provider.exclude(payload: nil)
 
     if File.file?(config_path)
       @logger.info("Loading configurations: #{config_path}")
@@ -67,30 +64,30 @@ class Miner
     now = Time.now.to_i
     last_hour_timestamp = now - (now % 3600) - TOLERANCE_MINUTES
     miner_config = @config['miner']
-    @starting_timestamp = miner_config['starting_timestamp'] || last_hour_timestamp - A_HOUR # last passed hour
-    @ending_timestamp = miner_config['ending_timestamp'] || last_hour_timestamp
-    @continuously_updated = miner_config['continuously_updated'] || false
-    @max_dimension = miner_config['max_dimension'] || 0
+    starting_timestamp = miner_config['starting_timestamp'] || last_hour_timestamp - A_HOUR # last passed hour
+    ending_timestamp = miner_config['ending_timestamp'] || last_hour_timestamp
+    continuously_updated = miner_config['continuously_updated'] || false
+    @max_events_number = miner_config['max_events_number'] || 0
     @last_update_timestamp = miner_config['last_update_timestamp'] || 0
-    @schedule_interval = miner_config['schedule_interval'] || '1h'
+    schedule_interval = miner_config['schedule_interval'] || '1h'
 
-    print_configs
+    print_configs(miner_config)
     @logger.info('Miner ready!')
 
-    if @last_update_timestamp > @starting_timestamp
-      @starting_timestamp = @last_update_timestamp
+    if @last_update_timestamp > starting_timestamp
+      starting_timestamp = @last_update_timestamp
     end
 
-    mine(Time.at(@starting_timestamp), Time.at(@ending_timestamp))
+    mine(Time.at(starting_timestamp), Time.at(ending_timestamp))
 
-    if @continuously_updated
-      set_continuously_update
+    if continuously_updated
+      set_continuously_update(schedule_interval)
     end
   end
 
-  def set_continuously_update
-    @scheduler = Rufus::Scheduler.new
-    @scheduler.every @schedule_interval do
+  def set_continuously_update(schedule_interval)
+    scheduler = Rufus::Scheduler.new
+    scheduler.every schedule_interval do
       update_events
     end
   end
@@ -100,12 +97,15 @@ class Miner
   end
 
   def mine (starting_timestamp, ending_timestamp)
+    provider = GHArchive::OnlineProvider.new
+    provider.include(type: 'PushEvent')
+    provider.exclude(payload: nil)
     events_counter = get_events_number
 
     @logger.info('Mining started')
     @logger.info("Stored events: #{events_counter}")
 
-    @provider.each(Time.at(starting_timestamp), Time.at(ending_timestamp)) do |event|
+    provider.each(Time.at(starting_timestamp), Time.at(ending_timestamp)) do |event|
       new_event = {
         event_id: events_counter,
         id: event['id'],
@@ -141,7 +141,7 @@ class Miner
     update_events # Necessary in case new events were generated during the initial mining process
 
     @logger.info('Mining completed')
-    @logger.info("Total Events: #{events_counter}")
+    @logger.info("Total Events: #{get_events_number}")
   end
 
   def write_last_update_timestamp
@@ -160,6 +160,19 @@ class Miner
       @logger.info('Events already updated')
     end
     write_last_update_timestamp
+    resize_events_collection(@max_events_number)
+  end
+
+  def resize_events_collection(max_events_number)
+    events_number = get_events_number
+    if events_number > max_events_number
+      @logger.info('Resizing events collection dimension')
+      events_to_remove = events_number - max_events_number
+      @logger.info("Removing #{events_to_remove} events")
+      events = Event.all.asc('_id').limit(events_to_remove)
+      events.each { |event| event.delete }
+      @logger.info('Events collection resized')
+    end
   end
 
   def get_events_number
@@ -186,14 +199,14 @@ class Miner
     Event.first
   end
 
-  def print_configs
+  def print_configs(miner_config)
     @logger.info(%{
 ##### BEGIN CONFIG #####
-starting_timestamp: #{@starting_timestamp}
-ending_timestamp: #{@ending_timestamp}
-continuously_updated: #{@continuously_updated}
-max_dimension: #{@max_dimension}
-last_update_timestamp: #{@last_update_timestamp}
+starting_timestamp: #{miner_config['starting_timestamp']}
+ending_timestamp: #{miner_config['ending_timestamp']}
+continuously_updated: #{miner_config['continuously_updated']}
+max_dimension: #{miner_config['max_dimension']}
+last_update_timestamp: #{miner_config['last_update_timestamp']}
 ##### END CONFIG #####
 
 })
