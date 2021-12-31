@@ -5,4 +5,4 @@ miner:
   continuously_updated: true
   max_events_number: 10000
   last_update_timestamp:
-  schedule_interval: 1m
+  schedule_interval: 1h
