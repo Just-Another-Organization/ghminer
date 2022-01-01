@@ -44,7 +44,7 @@ class Author
 end
 
 class Miner
-  TOLERANCE_MINUTES = 60 * 10 # ten minutes
+  TOLERANCE_MINUTES = 60 * 10 # ten minutes necessary to ensure that GH-archive packages are present
   A_HOUR = 60 * 60
 
   def initialize(config_path = '')
@@ -58,20 +58,20 @@ class Miner
       @logger.warn('Config file not found, using default configurations')
     end
 
-    now = Time.now.to_i
-    last_hour_timestamp = now - (now % 3600) - TOLERANCE_MINUTES
+    now = Time.now.to_i - TOLERANCE_MINUTES
+    last_hour_timestamp = now - (now % 3600)
     miner_config = @config['miner']
     starting_timestamp = miner_config['starting_timestamp'] || last_hour_timestamp - A_HOUR # last passed hour
     ending_timestamp = miner_config['ending_timestamp'] || last_hour_timestamp
     continuously_updated = miner_config['continuously_updated'] || false
     @max_events_number = miner_config['max_events_number'] || 0
-    @last_update_timestamp = miner_config['last_update_timestamp'] || 0
+    @last_update_timestamp = miner_config['last_update_timestamp'] || ending_timestamp
     schedule_interval = miner_config['schedule_interval'] || '1h'
 
     print_configs(miner_config)
     @logger.info('Miner ready!')
 
-    if @last_update_timestamp > starting_timestamp
+    if @last_update_timestamp > starting_timestamp && @last_update_timestamp != ending_timestamp
       starting_timestamp = @last_update_timestamp
     end
 
@@ -95,6 +95,8 @@ class Miner
 
   def mine (starting_timestamp, ending_timestamp)
     @logger.info('Mining started')
+    @logger.info("Starting timestamp: #{Time.at(starting_timestamp)}")
+    @logger.info("Ending timestamp: #{Time.at(ending_timestamp)}")
 
     provider = GHArchive::OnlineProvider.new
     provider.include(type: 'PushEvent')
@@ -137,26 +139,31 @@ class Miner
     @logger.info("Total Events: #{get_events_number}")
   end
 
-  def write_last_update_timestamp
-    @last_update_timestamp = Time.now.to_i
+  def write_last_update_timestamp(timestamp)
+    @last_update_timestamp = timestamp
     @config['miner']['last_update_timestamp'] = @last_update_timestamp
     File.open(@config_path, 'w') { |f| f.write @config.to_yaml }
     @logger.info("Last update: #{Time.at(@last_update_timestamp)}")
   end
 
   def update_events
-    if @last_update_timestamp != 0 && @last_update_timestamp < Time.now.to_i - A_HOUR
+    now = Time.now.to_i
+    now = now - (now % 3600)
+    if now - @last_update_timestamp >= A_HOUR + TOLERANCE_MINUTES
       @logger.info("Updating events starting from: #{@last_update_timestamp}")
-      mine(@last_update_timestamp, Time.now)
+      write_last_update_timestamp(now)
+      mine(@last_update_timestamp, now)
       @logger.info('Events update completed')
+      resize_events_collection(@max_events_number)
     else
       @logger.info('Events already updated')
     end
-    write_last_update_timestamp
-    resize_events_collection(@max_events_number)
   end
 
   def resize_events_collection(max_events_number)
+    if max_events_number == 0
+      return
+    end
     events_number = get_events_number
     if events_number > max_events_number
       @logger.info('Resizing events collection dimension')

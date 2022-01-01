@@ -3,6 +3,6 @@ miner:
   starting_timestamp:
   ending_timestamp:
   continuously_updated: true
-  max_events_number: 10000
+  max_events_number:
   last_update_timestamp:
   schedule_interval: 1h

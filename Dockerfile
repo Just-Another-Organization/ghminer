@@ -1,4 +1,9 @@
-FROM ruby:3.0
+FROM ruby:3.0-alpine
+
+RUN apk update
+RUN apk add --update-cache  \
+    build-base libc-dev linux-headers gcc tzdata
+RUN rm -rf /var/cache/apk/*
 
 ENV APP_PATH /app
 
