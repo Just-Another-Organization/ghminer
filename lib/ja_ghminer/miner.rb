@@ -1,47 +1,8 @@
 require 'gh-archive'
-require 'mongoid'
 require 'yaml'
 require 'logger'
 require 'rufus-scheduler'
-
-class Event
-  include Mongoid::Document
-  field :id, type: String
-  embeds_one :repo
-  embeds_one :payload
-  field :created_at, type: Time
-
-  index({ id: 1 }, { unique: true, name: "id_index" })
-end
-
-class Repo
-  include Mongoid::Document
-  field :id, type: String
-  field :name, type: String
-end
-
-class Payload
-  include Mongoid::Document
-  field :push_id, type: Numeric
-  field :size, type: Numeric
-  field :distinct_size, type: Numeric
-  field :ref, type: String
-  field :head, type: String
-  field :before, type: String
-  embeds_many :commits
-end
-
-class Commit
-  include Mongoid::Document
-  field :sha, type: String
-  field :message, type: String
-  embeds_one :author
-end
-
-class Author
-  include Mongoid::Document
-  field :name, type: String
-end
+require './lib/mongoid/model/Event'
 
 class Miner
   TOLERANCE_MINUTES = 60 * 10 # ten minutes necessary to ensure that GH-archive packages are present
@@ -61,24 +22,29 @@ class Miner
     now = Time.now.to_i - TOLERANCE_MINUTES
     last_hour_timestamp = now - (now % 3600)
     miner_config = @config['miner']
-    starting_timestamp = miner_config['starting_timestamp'] || last_hour_timestamp - A_HOUR # last passed hour
-    ending_timestamp = miner_config['ending_timestamp'] || last_hour_timestamp
-    continuously_updated = miner_config['continuously_updated'] || false
+    @starting_timestamp = miner_config['starting_timestamp'] || last_hour_timestamp - A_HOUR # last passed hour
+    @ending_timestamp = miner_config['ending_timestamp'] || last_hour_timestamp
+    @continuously_updated = miner_config['continuously_updated'] || false
     @max_events_number = miner_config['max_events_number'] || 0
-    @last_update_timestamp = miner_config['last_update_timestamp'] || ending_timestamp
-    schedule_interval = miner_config['schedule_interval'] || '1h'
+    @last_update_timestamp = miner_config['last_update_timestamp'] || 0
+    @schedule_interval = miner_config['schedule_interval'] || '1h'
 
     print_configs(miner_config)
     @logger.info('Miner ready!')
+  end
 
-    if @last_update_timestamp > starting_timestamp && @last_update_timestamp != ending_timestamp
+  def start
+    @logger.info('Miner starting!')
+    if @last_update_timestamp > 0 && @last_update_timestamp != @ending_timestamp
+      @logger.info('Updating')
       update_events
-    elsif @last_update_timestamp < ending_timestamp
-      mine(starting_timestamp, ending_timestamp)
+    elsif @last_update_timestamp < @ending_timestamp
+      @logger.info('Mining')
+      mine(@starting_timestamp, @ending_timestamp)
     end
 
-    if continuously_updated
-      set_continuously_update(schedule_interval)
+    if @continuously_updated
+      set_continuously_update(@schedule_interval)
     end
   end
 
@@ -94,9 +60,8 @@ class Miner
   end
 
   def mine (starting_timestamp, ending_timestamp)
-    @logger.info('Mining started')
-    @logger.info("Starting timestamp: #{Time.at(starting_timestamp)}")
-    @logger.info("Ending timestamp: #{Time.at(ending_timestamp)}")
+    @logger.info("Mining starting timestamp: #{Time.at(starting_timestamp)}")
+    @logger.info("Mining ending timestamp: #{Time.at(ending_timestamp)}")
 
     provider = GHArchive::OnlineProvider.new
     provider.include(type: 'PushEvent')
@@ -134,7 +99,6 @@ class Miner
     end
 
     write_last_update_timestamp(ending_timestamp)
-
     update_events # Necessary in case new events were generated during the initial mining process
 
     @logger.info('Mining completed')
@@ -177,37 +141,7 @@ class Miner
     end
   end
 
-  def get_events_number
-    Event.all.count
-  end
 
-  def query(query, result_limit = 0)
-    @logger.info("Querying find: #{query}, limit: #{result_limit}")
-    Event.where(query).limit(result_limit)
-  end
-
-  def query_regex(field, regex, result_limit = 0)
-    @logger.info("Querying regex: #{field}, #{regex}, limit: #{result_limit}")
-    regexp = Regexp.new(regex, true)
-    pattern = {}
-    pattern[field] = regexp
-    Event.where(pattern).limit(result_limit)
-  end
-
-  def find(query)
-    @logger.info("Querying find: #{query}")
-    Event.find(query)
-  end
-
-  def get_all
-    @logger.info('Querying all')
-    Event.all
-  end
-
-  def first
-    @logger.info('Querying first')
-    Event.first
-  end
 
   def print_configs(miner_config)
     @logger.info(%{
