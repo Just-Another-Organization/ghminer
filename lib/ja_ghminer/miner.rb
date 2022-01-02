@@ -97,7 +97,7 @@ class Miner
     update_events # Necessary in case new events were generated during the initial mining process
 
     Log.logger.info('Mining completed')
-    Log.logger.info("Total Events: #{get_events_number}")
+    Log.logger.info("Total Events: #{EventModel.get_events_number}")
   end
 
   def write_last_update_timestamp(timestamp)
@@ -125,7 +125,7 @@ class Miner
     if max_events_number == 0
       return
     end
-    events_number = get_events_number
+    events_number = EventModel.get_events_number
     if events_number > max_events_number
       Log.logger.info('Resizing events collection dimension')
       events_to_remove = events_number - max_events_number
@@ -136,20 +136,18 @@ class Miner
     end
   end
 
-
-
   def print_configs(miner_config)
-    #     logger.info(%{
-    #
-    #           ##### BEGIN CONFIG #####
-    #           starting_timestamp: #{miner_config['starting_timestamp']}
-    #           ending_timestamp: #{miner_config['ending_timestamp']}
-    #           continuously_updated: #{miner_config['continuously_updated']}
-    #           max_dimension: #{miner_config['max_dimension']}
-    #           last_update_timestamp: #{miner_config['last_update_timestamp']}
-    #           ##### END CONFIG #####
-    #
-    # })
+    Log.logger.info(%{
+
+        ##### BEGIN CONFIG #####
+        starting_timestamp: #{miner_config['starting_timestamp']}
+        ending_timestamp: #{miner_config['ending_timestamp']}
+        continuously_updated: #{miner_config['continuously_updated']}
+        max_dimension: #{miner_config['max_dimension']}
+        last_update_timestamp: #{miner_config['last_update_timestamp']}
+        ##### END CONFIG #####
+
+    })
   end
 
 end
