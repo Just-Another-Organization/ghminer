@@ -1,8 +1,8 @@
 ---
 miner:
-  starting_timestamp:
+  starting_timestamp: 1640995200
   ending_timestamp:
   continuously_updated: true
   max_events_number:
-  last_update_timestamp:
+  last_update_timestamp: 1641088800
   schedule_interval: 1h

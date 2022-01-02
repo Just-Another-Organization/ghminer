@@ -72,7 +72,7 @@ class Miner
     @logger.info('Miner ready!')
 
     if @last_update_timestamp > starting_timestamp && @last_update_timestamp != ending_timestamp
-      starting_timestamp = @last_update_timestamp
+      starting_timestamp = @last_update_timestamp + A_HOUR
     end
 
     mine(starting_timestamp, ending_timestamp)
