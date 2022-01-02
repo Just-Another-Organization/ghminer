@@ -72,10 +72,10 @@ class Miner
     @logger.info('Miner ready!')
 
     if @last_update_timestamp > starting_timestamp && @last_update_timestamp != ending_timestamp
-      starting_timestamp = @last_update_timestamp + A_HOUR
+      update_events
+    elsif @last_update_timestamp < ending_timestamp
+      mine(starting_timestamp, ending_timestamp)
     end
-
-    mine(starting_timestamp, ending_timestamp)
 
     if continuously_updated
       set_continuously_update(schedule_interval)
@@ -133,6 +133,8 @@ class Miner
       Event.create(new_event)
     end
 
+    write_last_update_timestamp(ending_timestamp)
+
     update_events # Necessary in case new events were generated during the initial mining process
 
     @logger.info('Mining completed')
@@ -151,10 +153,10 @@ class Miner
     now = now - (now % 3600)
     if now - @last_update_timestamp >= A_HOUR + TOLERANCE_MINUTES
       @logger.info("Updating events starting from: #{@last_update_timestamp}")
+      mine(@last_update_timestamp + A_HOUR, now)
       write_last_update_timestamp(now)
-      mine(@last_update_timestamp, now)
-      @logger.info('Events update completed')
       resize_events_collection(@max_events_number)
+      @logger.info('Events update completed')
     else
       @logger.info('Events already updated')
     end
