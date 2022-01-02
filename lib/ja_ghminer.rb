@@ -3,22 +3,24 @@ require 'sinatra/reloader' if development?
 require 'json'
 require 'mongoid'
 require './lib/ja_ghminer/miner'
-require './lib/mongoid/model/Event'
+require './lib/mongoid/model/event_model'
+require './lib/logger/logger'
 
 CONFIG_BASE_PATH = File.join(File.dirname(__FILE__), 'config')
 MONGOID_CONFIG_PATH = File.join(CONFIG_BASE_PATH, 'mongoid.yml')
 MINER_CONFIG_PATH = File.join(CONFIG_BASE_PATH, 'miner.yml')
 ENVIRONMENT = ENV['RACK_ENV']
 
-puts 'JA-GHMiner starting'
+Log.logger.info('JA-GHMiner starting')
+
 Mongoid.load!(MONGOID_CONFIG_PATH, ENVIRONMENT)
 miner = Miner.new(MINER_CONFIG_PATH)
 
 if defined?(Sinatra::Reloader)
-  puts 'Sinatra development reloading enabled'
+  Log.logger.info('Sinatra development reloading enabled')
   also_reload './src/*'
   after_reload do
-    puts 'Change detected: Sinatra reloaded'
+    Log.logger.info('Change detected: Sinatra reloaded')
   end
 end
 
@@ -31,7 +33,7 @@ get '/health' do
 end
 
 get '/test' do
-  result = Event.first
+  result = EventModel.first
   halt 200, { result: result }.to_json
 end
 
@@ -40,10 +42,7 @@ get '/query' do
   query = params['query']
   limit = params['limit']
 
-  puts query
-  puts limit
-
-  result = Event.query(query, limit)
+  result = EventModel.query(query, limit)
   halt 200, { result: result }.to_json
 end
 
@@ -53,7 +52,7 @@ get '/query-regex' do
   limit = params['limit']
   regex = params['regex']
 
-  result = Event.query_regex(field, regex, limit)
+  result = EventModel.query_regex(field, regex, limit)
   halt 200, { result: result }.to_json
 end
 
