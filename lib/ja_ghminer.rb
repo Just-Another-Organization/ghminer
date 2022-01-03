@@ -12,8 +12,8 @@ MINER_CONFIG_PATH = File.join(CONFIG_BASE_PATH, 'miner.yml')
 ENVIRONMENT = ENV['RACK_ENV']
 
 Log.logger.info('JA-GHMiner starting')
-
 Mongoid.load!(MONGOID_CONFIG_PATH, ENVIRONMENT)
+event_model = EventModel.new
 miner = Miner.new(MINER_CONFIG_PATH)
 
 if defined?(Sinatra::Reloader)
@@ -33,7 +33,7 @@ get '/health' do
 end
 
 get '/test' do
-  result = EventModel.first
+  result = event_model.first
   halt 200, { result: result }.to_json
 end
 
@@ -42,7 +42,7 @@ get '/query' do
   query = params['query']
   limit = params['limit']
 
-  result = EventModel.query(query, limit)
+  result = event_model.query(query, limit)
   halt 200, { result: result }.to_json
 end
 
@@ -52,7 +52,7 @@ get '/query-regex' do
   limit = params['limit']
   regex = params['regex']
 
-  result = EventModel.query_regex(field, regex, limit)
+  result = event_model.query_regex(field, regex, limit)
   halt 200, { result: result }.to_json
 end
 
