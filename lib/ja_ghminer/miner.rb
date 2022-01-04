@@ -5,7 +5,7 @@ require './lib/mongoid/model/event_model'
 require './lib/logger/logger'
 
 class Miner
-  TOLERANCE_MINUTES = 60 * 10 # ten minutes necessary to ensure that GH-archive packages are present
+  TOLERANCE_MINUTES = 60 * 20 # twenty minutes necessary to ensure that GH-archive packages are present
   A_HOUR = 60 * 60
 
   def initialize(config_path = '')
@@ -41,7 +41,7 @@ class Miner
       update_events
     elsif @last_update_timestamp < @ending_timestamp
       Log.logger.info('Mining')
-      mine(@starting_timestamp, @ending_timestamp)
+      mine(@starting_timestamp, @starting_timestamp + A_HOUR)
     end
 
     if @continuously_updated
@@ -92,7 +92,11 @@ class Miner
         created_at: event['created_at']
       }
 
-      Event.create(new_event)
+      begin
+        Event.create(new_event)
+      rescue
+        puts("DUPLICATED FOUND")
+      end
     end
 
     write_last_update_timestamp(ending_timestamp)
@@ -110,12 +114,11 @@ class Miner
   end
 
   def update_events
-    now = Time.now.to_i
-    now = now - (now % 3600)
+    now = Time.now.to_i - (Time.now.to_i % 3600)
     if now - @last_update_timestamp >= A_HOUR + TOLERANCE_MINUTES
-      Log.logger.info("Updating events starting from: #{@last_update_timestamp}")
-      mine(@last_update_timestamp + A_HOUR, now)
-      write_last_update_timestamp(now)
+      Log.logger.info("Updating events starting from: #{Time.at(@last_update_timestamp)}")
+      mine(@last_update_timestamp, @last_update_timestamp + A_HOUR)
+      # write_last_update_timestamp(@last_update_timestamp +  A_HOUR)
       resize_events_collection(@max_events_number)
       Log.logger.info('Events update completed')
     else
@@ -133,23 +136,19 @@ class Miner
       events_to_remove = events_number - max_events_number
       Log.logger.info("Removing #{events_to_remove} events")
       events = Event.all.asc('_id').limit(events_to_remove)
-      events.each { |event| event.delete }
+      events.each(&:delete)
       Log.logger.info('Events collection resized')
     end
   end
 
   def print_configs(miner_config)
-    Log.logger.info(%{
-
-        ##### BEGIN CONFIG #####
-        starting_timestamp: #{miner_config['starting_timestamp']}
-        ending_timestamp: #{miner_config['ending_timestamp']}
-        continuously_updated: #{miner_config['continuously_updated']}
-        max_dimension: #{miner_config['max_dimension']}
-        last_update_timestamp: #{miner_config['last_update_timestamp']}
-        ##### END CONFIG #####
-
-    })
+    Log.logger.info("########### BEGIN CONFIG ###########")
+    Log.logger.info("starting_timestamp: #{miner_config['starting_timestamp']}")
+    Log.logger.info("ending_timestamp: #{miner_config['ending_timestamp']}")
+    Log.logger.info("continuously_updated: #{miner_config['continuously_updated']}")
+    Log.logger.info("max_dimension: #{miner_config['max_dimension']}")
+    Log.logger.info("last_update_timestamp: #{miner_config['last_update_timestamp']}")
+    Log.logger.info("########### END CONFIG ###########")
   end
 
 end
