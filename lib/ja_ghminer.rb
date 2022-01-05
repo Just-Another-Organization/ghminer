@@ -6,6 +6,7 @@ require './lib/ja_ghminer/miner'
 require './lib/mongoid/model/event_model'
 require './lib/logger/logger'
 
+
 CONFIG_BASE_PATH = File.join(File.dirname(__FILE__), 'config')
 MONGOID_CONFIG_PATH = File.join(CONFIG_BASE_PATH, 'mongoid.yml')
 MINER_CONFIG_PATH = File.join(CONFIG_BASE_PATH, 'miner.yml')

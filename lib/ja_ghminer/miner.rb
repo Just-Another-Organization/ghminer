@@ -95,7 +95,7 @@ class Miner
       begin
         Event.create(new_event)
       rescue
-        puts("DUPLICATED FOUND")
+        Log.logger.warn('Duplicated found')
       end
     end
 
@@ -118,7 +118,6 @@ class Miner
     if now - @last_update_timestamp >= A_HOUR + TOLERANCE_MINUTES
       Log.logger.info("Updating events starting from: #{Time.at(@last_update_timestamp)}")
       mine(@last_update_timestamp, @last_update_timestamp + A_HOUR)
-      # write_last_update_timestamp(@last_update_timestamp +  A_HOUR)
       resize_events_collection(@max_events_number)
       Log.logger.info('Events update completed')
     else

@@ -37,6 +37,8 @@ GEM
     console (1.14.0)
       fiber-local
     daemons (1.4.1)
+    et-orbi (1.2.6)
+      tzinfo
     eventmachine (1.2.7)
     falcon (0.39.2)
       async
@@ -53,6 +55,9 @@ GEM
     fiber-local (1.0.0)
     file-tail (1.2.0)
       tins (~> 1.0)
+    fugit (1.5.2)
+      et-orbi (~> 1.1, >= 1.1.8)
+      raabro (~> 1.4)
     gh-archive (0.17)
       code-assertions (~> 1.1.2, >= 1.1.2)
       thread (~> 0.2.2, >= 0.2.2)
@@ -70,6 +75,7 @@ GEM
     multi_json (1.15.0)
     mustermann (1.1.1)
       ruby2_keywords (~> 0.0.1)
+    newrelic_rpm (8.2.0)
     nio4r (2.5.8)
     process-metrics (0.2.1)
       console (~> 1.8)
@@ -83,6 +89,7 @@ GEM
       protocol-http (~> 0.18)
     puma (5.5.2)
       nio4r (~> 2.0)
+    raabro (1.4.0)
     rack (2.2.3)
     rack-protection (2.1.0)
       rack
@@ -92,6 +99,8 @@ GEM
       sexp_processor (~> 4.6)
     ruby_parser (3.18.1)
       sexp_processor (~> 4.16)
+    rufus-scheduler (3.8.0)
+      fugit (~> 1.1, >= 1.1.6)
     samovar (2.1.4)
       console (~> 1.0)
       mapping (~> 1.0)
@@ -136,12 +145,14 @@ DEPENDENCIES
   falcon
   gh-archive
   mongoid (~> 7.0)
+  newrelic_rpm
   puma
   rack
+  rufus-scheduler
   sinatra
   sinatra-contrib
   thin
   webrick
 
 BUNDLED WITH
-   2.2.33
+   2.3.3
