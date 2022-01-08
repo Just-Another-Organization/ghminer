@@ -17,6 +17,17 @@ services:
     networks:
       - mongo-net
 
+  ui:
+    image: ja-ghminer-ui:latest
+    container_name: ja_ghminer_ui
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "${UI_PORT}:80"
+
   mongodb:
     image: 'mongo:latest'
     container_name: ja_ghminer_database

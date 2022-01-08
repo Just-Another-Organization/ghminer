@@ -7,7 +7,7 @@ class Event
   embeds_one :payload
   field :created_at, type: Time
 
-  index({ id: 1 }, { unique: true, name: "id_index" })
+  index({ id: 1 }, { unique: true, name: 'id_index' })
 end
 
 class Repo

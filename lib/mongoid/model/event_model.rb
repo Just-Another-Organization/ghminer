@@ -7,12 +7,12 @@ class EventModel
   end
 
   def query(query, result_limit = 0)
-    Log.logger.info("Querying find: #{query}, limit: #{result_limit}")
+    Log.logger.info("Querying find: #{query}, limit: #{result_limit}|")
     Event.where(query).limit(result_limit)
   end
 
   def query_regex(field, regex, result_limit = 0)
-    Log.logger.info("Querying regex: #{field}, #{regex}, limit: #{result_limit}")
+    Log.logger.info("Querying regex: #{field}, #{regex}, limit: #{result_limit}|")
     regexp = Regexp.new(regex, true)
     pattern = {}
     pattern[field] = regexp
@@ -20,17 +20,17 @@ class EventModel
   end
 
   def find(query)
-    Log.logger.info("Querying find: #{query}")
+    Log.logger.info("Querying find: #{query}|")
     Event.find(query)
   end
 
   def get_all
-    Log.logger.info('Querying all')
+    Log.logger.info('Querying all|')
     Event.all
   end
 
   def first
-    Log.logger.info('Querying first')
+    Log.logger.info('Querying first|')
     Event.first
   end
 end

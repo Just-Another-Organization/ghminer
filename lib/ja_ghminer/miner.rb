@@ -12,10 +12,10 @@ class Miner
     @config_path = config_path
 
     if File.file?(config_path)
-      Log.logger.info("Loading configurations: #{config_path}")
+      Log.logger.info("Loading configurations: #{config_path}|")
       @config = YAML.load_file(config_path)
     else
-      Log.logger.warn('Config file not found, using default configurations')
+      Log.logger.warn('Config file not found, using default configurations|')
     end
 
     now = Time.now.to_i - TOLERANCE_MINUTES
@@ -31,22 +31,20 @@ class Miner
     @event_model = EventModel.new
 
     print_configs(miner_config)
-    Log.logger.info('Miner ready!')
+    Log.logger.info('Miner ready|')
   end
 
   def start
-    Log.logger.info('Miner starting!')
-    if @last_update_timestamp > 0 && @last_update_timestamp != @ending_timestamp
-      Log.logger.info('Updating')
+    Log.logger.info('Miner starting|')
+    if @last_update_timestamp.positive? && @last_update_timestamp != @ending_timestamp
+      Log.logger.info('Updating|')
       update_events
     elsif @last_update_timestamp < @ending_timestamp
-      Log.logger.info('Mining')
+      Log.logger.info('Mining|')
       mine(@starting_timestamp, @starting_timestamp + A_HOUR)
     end
 
-    if @continuously_updated
-      set_continuously_update(@schedule_interval)
-    end
+    set_continuously_update(@schedule_interval) if @continuously_updated
   end
 
   def set_continuously_update(schedule_interval)
@@ -57,8 +55,9 @@ class Miner
   end
 
   def mine (starting_timestamp, ending_timestamp)
-    Log.logger.info("Mining starting timestamp: #{Time.at(starting_timestamp)}")
-    Log.logger.info("Mining ending timestamp: #{Time.at(ending_timestamp)}")
+    Log.logger.info("Mining starting timestamp: #{Time.at(starting_timestamp)}|")
+    Log.logger.info("Mining ending timestamp: #{Time.at(ending_timestamp)}|")
+    duplicated = false
 
     provider = GHArchive::OnlineProvider.new
     provider.include(type: 'PushEvent')
@@ -94,60 +93,60 @@ class Miner
 
       begin
         Event.create(new_event)
-      rescue
-        Log.logger.warn('Duplicated found')
+      rescue StandardError
+        duplicated = true
       end
-    end
 
+    end
+    Log.logger.warn('Duplicated found|') if duplicated
     write_last_update_timestamp(ending_timestamp)
     update_events # Necessary in case new events were generated during the initial mining process
 
-    Log.logger.info('Mining completed')
-    Log.logger.info("Total Events: #{@event_model.get_events_number}")
+    Log.logger.info('Mining completed|')
+    Log.logger.info("Total Events: #{@event_model.get_events_number}|")
   end
 
   def write_last_update_timestamp(timestamp)
     @last_update_timestamp = timestamp
     @config['miner']['last_update_timestamp'] = @last_update_timestamp
     File.open(@config_path, 'w') { |f| f.write @config.to_yaml }
-    Log.logger.info("Last update: #{Time.at(@last_update_timestamp)}")
+    Log.logger.info("Last update: #{Time.at(@last_update_timestamp)}|")
   end
 
   def update_events
     now = Time.now.to_i - (Time.now.to_i % 3600)
     if now - @last_update_timestamp >= A_HOUR + TOLERANCE_MINUTES
-      Log.logger.info("Updating events starting from: #{Time.at(@last_update_timestamp)}")
+      Log.logger.info("Updating events starting from: #{Time.at(@last_update_timestamp)}|")
       mine(@last_update_timestamp, @last_update_timestamp + A_HOUR)
       resize_events_collection(@max_events_number)
-      Log.logger.info('Events update completed')
+      Log.logger.info('Events update completed|')
     else
-      Log.logger.info('Events already updated')
+      Log.logger.info('Events already updated|')
     end
   end
 
   def resize_events_collection(max_events_number)
-    if max_events_number == 0
-      return
-    end
+    return if max_events_number.zero?
+
     events_number = @event_model.get_events_number
     if events_number > max_events_number
-      Log.logger.info('Resizing events collection dimension')
+      Log.logger.info('Resizing events collection dimension|')
       events_to_remove = events_number - max_events_number
-      Log.logger.info("Removing #{events_to_remove} events")
+      Log.logger.info("Removing #{events_to_remove} events|")
       events = Event.all.asc('_id').limit(events_to_remove)
       events.each(&:delete)
-      Log.logger.info('Events collection resized')
+      Log.logger.info('Events collection resized|')
     end
   end
 
   def print_configs(miner_config)
-    Log.logger.info("########### BEGIN CONFIG ###########")
-    Log.logger.info("starting_timestamp: #{miner_config['starting_timestamp']}")
-    Log.logger.info("ending_timestamp: #{miner_config['ending_timestamp']}")
-    Log.logger.info("continuously_updated: #{miner_config['continuously_updated']}")
-    Log.logger.info("max_dimension: #{miner_config['max_dimension']}")
-    Log.logger.info("last_update_timestamp: #{miner_config['last_update_timestamp']}")
-    Log.logger.info("########### END CONFIG ###########")
+    Log.logger.info("########### BEGIN CONFIG ###########|")
+    Log.logger.info("starting_timestamp: #{miner_config['starting_timestamp']}|")
+    Log.logger.info("ending_timestamp: #{miner_config['ending_timestamp']}|")
+    Log.logger.info("continuously_updated: #{miner_config['continuously_updated']}|")
+    Log.logger.info("max_dimension: #{miner_config['max_dimension']}|")
+    Log.logger.info("last_update_timestamp: #{miner_config['last_update_timestamp']}|")
+    Log.logger.info("########### END CONFIG ###########|")
   end
 
 end
