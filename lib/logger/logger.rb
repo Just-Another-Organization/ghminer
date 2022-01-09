@@ -1,11 +1,9 @@
-require './lib/logger/MultiIO'
+# frozen_string_literal: true
 
 class Log
   def self.logger
     if @_logger.nil?
-      log_file = File.open("logs/default.log", "a")
-      @_logger = Logger.new(MultiIO.new(STDOUT, log_file))
-      $stdout.sync = true
+      @_logger = Logger.new('logs/default.log')
     end
     @_logger
   end

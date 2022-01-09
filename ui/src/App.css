@@ -1,0 +1,16 @@
+.logs-wrapper {
+    max-height: 40rem;
+    overflow-y: scroll;
+    display: flex;
+    flex-direction: column-reverse;
+}
+.row {
+    display: flex;
+    font-size: 1rem;
+    line-height: 1%;
+    padding: 0;
+    margin: 0;
+}
+.row-message {
+    font-size: .9rem;
+}
