@@ -98,6 +98,7 @@ class Miner
       end
 
     end
+    GC.start
     Log.logger.warn('Duplicated found|') if duplicated
     write_last_update_timestamp(ending_timestamp)
     update_events # Necessary in case new events were generated during the initial mining process
