@@ -58,6 +58,7 @@ class Miner
     Log.logger.info("Mining starting timestamp: #{Time.at(starting_timestamp)}|")
     Log.logger.info("Mining ending timestamp: #{Time.at(ending_timestamp)}|")
     duplicated = false
+    hourly_events = 0
 
     provider = GHArchive::OnlineProvider.new
     provider.include(type: 'PushEvent')
@@ -92,13 +93,18 @@ class Miner
       }
 
       begin
+        hourly_events += 1
         Event.create(new_event)
       rescue StandardError
         duplicated = true
       end
 
+      if (@event_model.get_events_number % 1000 === 0 ) 
+        GC.start
+      end
+
     end
-    GC.start
+    
     Log.logger.warn('Duplicated found|') if duplicated
     write_last_update_timestamp(ending_timestamp)
     update_events # Necessary in case new events were generated during the initial mining process
