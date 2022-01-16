@@ -58,14 +58,13 @@ class Miner
     Log.logger.info("Mining starting timestamp: #{Time.at(starting_timestamp)}|")
     Log.logger.info("Mining ending timestamp: #{Time.at(ending_timestamp)}|")
     duplicated = false
-    hourly_events = 0
 
-    provider = GHArchive::OnlineProvider.new
-    provider.include(type: 'PushEvent')
-    provider.exclude(payload: nil)
-
-    provider.each(Time.at(starting_timestamp), Time.at(ending_timestamp)) do |event|
-      new_event = {
+    @provider = GHArchive::OnlineProvider.new
+    @provider.include(type: 'PushEvent')
+    @provider.exclude(payload: nil)
+    
+    @provider.each(Time.at(starting_timestamp), Time.at(ending_timestamp)) do |event|
+      @new_event = {
         id: event['id'],
         repo: {
           id: event['repo']['id'],
@@ -93,20 +92,22 @@ class Miner
       }
 
       begin
-        hourly_events += 1
-        Event.create(new_event)
+        Event.create(@new_event)
       rescue StandardError
         duplicated = true
       end
 
-      if (@event_model.get_events_number % 1000 === 0 ) 
-        GC.start
-      end
+      remove_instance_variable(:@new_event)
 
     end
-    
+
+    remove_instance_variable(:@provider) 
+
     Log.logger.warn('Duplicated found|') if duplicated
     write_last_update_timestamp(ending_timestamp)
+    
+    GC.start(full_mark: true)
+
     update_events # Necessary in case new events were generated during the initial mining process
 
     Log.logger.info('Mining completed|')
@@ -125,7 +126,7 @@ class Miner
     if now - @last_update_timestamp >= A_HOUR + TOLERANCE_MINUTES
       Log.logger.info("Updating events starting from: #{Time.at(@last_update_timestamp)}|")
       mine(@last_update_timestamp, @last_update_timestamp + A_HOUR)
-      resize_events_collection(@max_events_number)
+      # resize_events_collection(@max_events_number)
       Log.logger.info('Events update completed|')
     else
       Log.logger.info('Events already updated|')

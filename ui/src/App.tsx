@@ -6,7 +6,7 @@ const App: FC = () => {
   const [minerStatus, setMinerStatus] = useState<string>('');
 
   async function getLogs() {
-    const logs = await fetch('http://localhost:4567/logs').then((res) =>{
+    const logs = await fetch('https://jaghminer.justanotherdomain.dev/miner/logs').then((res) =>{
       return res.json()
     })
     setLogs(logs.result.split("|"))
@@ -27,9 +27,8 @@ const App: FC = () => {
     return !minerStatus.includes('Miner ready');
   }
 
-  // TODO CHANGE LOCALHOST WITH CONTAINER OR ENV FILE
   function startMining(){
-    fetch('http://localhost:4567/mine');
+    fetch('https://jaghminer.justanotherdomain.dev/miner/mine');
   }
 
   return (

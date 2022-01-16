@@ -10,7 +10,7 @@ ENV APP_PATH /app
 WORKDIR $APP_PATH/
 ADD Gemfile* $APP_PATH/
 RUN gem install bundler
-RUN bundle config set --local path '$APP_PATH/vendor/bundle'
+RUN bundle config set --local path "${APP_PATH}/vendor/bundle"
 RUN bundle install
 RUN bundle update
 
