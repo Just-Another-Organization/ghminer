@@ -27,6 +27,12 @@ class Miner
     @max_events_number = miner_config['max_events_number'] || 0
     @last_update_timestamp = miner_config['last_update_timestamp'] || 0
     @schedule_interval = miner_config['schedule_interval'] || '1h'
+    @keywords = miner_config['keywords'] || []
+    @filtered_mode = false
+
+    if @keywords.length > 0
+      @filtered_mode = true
+    end
 
     @event_model = EventModel.new
 
@@ -62,7 +68,7 @@ class Miner
     @provider = GHArchive::OnlineProvider.new
     @provider.include(type: 'PushEvent')
     @provider.exclude(payload: nil)
-    
+
     @provider.each(Time.at(starting_timestamp), Time.at(ending_timestamp)) do |event|
       @new_event = {
         id: event['id'],
@@ -92,7 +98,19 @@ class Miner
       }
 
       begin
-        Event.create(@new_event)
+        if !@filtered_mode
+          Event.create(@new_event)
+        else
+          @new_event['payload'.to_sym]['commits'.to_sym].each do |commit|
+            if @keywords.any? do |word|
+              if commit['message'.to_sym].include?(word)
+                Event.create(@new_event)
+                break
+              end
+            end
+            end
+          end
+        end
       rescue StandardError
         duplicated = true
       end
@@ -101,11 +119,11 @@ class Miner
 
     end
 
-    remove_instance_variable(:@provider) 
+    remove_instance_variable(:@provider)
 
     Log.logger.warn('Duplicated found|') if duplicated
     write_last_update_timestamp(ending_timestamp)
-    
+
     GC.start(full_mark: true)
 
     update_events # Necessary in case new events were generated during the initial mining process
@@ -126,7 +144,7 @@ class Miner
     if now - @last_update_timestamp >= A_HOUR + TOLERANCE_MINUTES
       Log.logger.info("Updating events starting from: #{Time.at(@last_update_timestamp)}|")
       mine(@last_update_timestamp, @last_update_timestamp + A_HOUR)
-      # resize_events_collection(@max_events_number)
+      resize_events_collection(@max_events_number)
       Log.logger.info('Events update completed|')
     else
       Log.logger.info('Events already updated|')
@@ -154,6 +172,7 @@ class Miner
     Log.logger.info("continuously_updated: #{miner_config['continuously_updated']}|")
     Log.logger.info("max_dimension: #{miner_config['max_dimension']}|")
     Log.logger.info("last_update_timestamp: #{miner_config['last_update_timestamp']}|")
+    Log.logger.info("keyword: #{miner_config['keywords']}|")
     Log.logger.info("########### END CONFIG ###########|")
   end
 

@@ -6,3 +6,4 @@ miner:
   max_events_number:
   last_update_timestamp:
   schedule_interval: 1h
+  keywords:
