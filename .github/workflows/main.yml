@@ -1,29 +1,39 @@
-name: Ruby
+name: Ruby-CI
+
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: Ruby ${{ matrix.ruby }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        ruby: [3.0]
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ${{ matrix.ruby }}
-          bundler-cache: true
-      - name: Run security checks
-        run: |
-          bin/bundler-audit --update
-          bin/brakeman -q -w2
-      - name: Run linters
-        run: |
-          bin/rubocop --parallel
+
+steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+    - name: Set up Ruby
+          uses: ruby/setup-ruby
+          with:
+            ruby-version: 3.0.0
+    - name: Cache Ruby Gems
+          uses: actions/cache@v2
+          with:
+            path: vendor/bundle
+            key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+            restore-keys: |
+              ${{ runner.os }}-gems-
+
+        - name: Bundle Install
+          run: |
+            bundle config path vendor/bundle
+            bundle install --jobs 4 --retry 3
+    - name: Run Tests
+    - name: Formatting and Security Checks
+          run: |
+            bundle exec rubocop
+            bundle exec brakeman -z
+            gem install bundle-audit
+            bundle-audit update
+            bundle-audit
