@@ -212,7 +212,7 @@ The `field` property can take values based on the structure of the event entity 
    "id": "id",
    "repo":{
       "id": "repo.id",
-      "name": "repo.name".
+      "name": "repo.name"
    },
    "payload":{
       "push_id": "payload.push_id",
