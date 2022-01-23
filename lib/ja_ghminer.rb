@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'sinatra'
 require 'sinatra/cross_origin'
 require 'sinatra/reloader' if development?
@@ -6,7 +8,6 @@ require 'mongoid'
 require './lib/ja_ghminer/miner'
 require './lib/mongoid/model/event_model'
 require './lib/logger/logger'
-
 
 CONFIG_BASE_PATH = File.join(File.dirname(__FILE__), 'config')
 MONGOID_CONFIG_PATH = File.join(CONFIG_BASE_PATH, 'mongoid.yml')
@@ -72,5 +73,3 @@ get '/logs' do
   result = File.read('logs/default.log')
   halt 200, { result: result }.to_json
 end
-
-

@@ -1,9 +1,12 @@
+# frozen_string_literal: true
+
 require 'gh-archive'
 require 'yaml'
 require 'rufus-scheduler'
 require './lib/mongoid/model/event_model'
 require './lib/logger/logger'
 
+# Miner core class
 class Miner
   TOLERANCE_MINUTES = 60 * 20 # twenty minutes necessary to ensure that GH-archive packages are present
   A_HOUR = 60 * 60
@@ -30,9 +33,7 @@ class Miner
     @keywords = miner_config['keywords'] || []
     @filtered_mode = false
 
-    if @keywords.length > 0
-      @filtered_mode = true
-    end
+    @filtered_mode = true if @keywords.length.positive?
 
     @event_model = EventModel.new
 
@@ -50,17 +51,17 @@ class Miner
       mine(@starting_timestamp, @starting_timestamp + A_HOUR)
     end
 
-    set_continuously_update(@schedule_interval) if @continuously_updated
+    continuously_update(@schedule_interval) if @continuously_updated
   end
 
-  def set_continuously_update(schedule_interval)
+  def continuously_update(schedule_interval)
     scheduler = Rufus::Scheduler.new
     scheduler.every schedule_interval do
       update_events
     end
   end
 
-  def mine (starting_timestamp, ending_timestamp)
+  def mine(starting_timestamp, ending_timestamp)
     Log.logger.info("Mining starting timestamp: #{Time.at(starting_timestamp)}|")
     Log.logger.info("Mining ending timestamp: #{Time.at(ending_timestamp)}|")
     duplicated = false
@@ -102,12 +103,11 @@ class Miner
           Event.create(@new_event)
         else
           @new_event['payload'.to_sym]['commits'.to_sym].each do |commit|
-            if @keywords.any? do |word|
+            next unless @keywords.any? do |word|
               if commit['message'.to_sym].include?(word)
                 Event.create(@new_event)
                 break
               end
-            end
             end
           end
         end
@@ -116,7 +116,6 @@ class Miner
       end
 
       remove_instance_variable(:@new_event)
-
     end
 
     remove_instance_variable(:@provider)
@@ -129,7 +128,7 @@ class Miner
     update_events # Necessary in case new events were generated during the initial mining process
 
     Log.logger.info('Mining completed|')
-    Log.logger.info("Total Events: #{@event_model.get_events_number}|")
+    Log.logger.info("Total Events: #{@event_model.events_number}|")
   end
 
   def write_last_update_timestamp(timestamp)
@@ -154,7 +153,7 @@ class Miner
   def resize_events_collection(max_events_number)
     return if max_events_number.zero?
 
-    events_number = @event_model.get_events_number
+    events_number = @event_model.events_number
     if events_number > max_events_number
       Log.logger.info('Resizing events collection dimension|')
       events_to_remove = events_number - max_events_number
@@ -166,14 +165,13 @@ class Miner
   end
 
   def print_configs(miner_config)
-    Log.logger.info("########### BEGIN CONFIG ###########|")
+    Log.logger.info('########### BEGIN CONFIG ###########|')
     Log.logger.info("starting_timestamp: #{miner_config['starting_timestamp']}|")
     Log.logger.info("ending_timestamp: #{miner_config['ending_timestamp']}|")
     Log.logger.info("continuously_updated: #{miner_config['continuously_updated']}|")
     Log.logger.info("max_dimension: #{miner_config['max_dimension']}|")
     Log.logger.info("last_update_timestamp: #{miner_config['last_update_timestamp']}|")
     Log.logger.info("keyword: #{miner_config['keywords']}|")
-    Log.logger.info("########### END CONFIG ###########|")
+    Log.logger.info('########### END CONFIG ###########|')
   end
-
 end

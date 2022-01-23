@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require './lib/ja_ghminer'
 require './lib/logger/logger'
 

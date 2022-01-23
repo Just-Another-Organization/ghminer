@@ -1,8 +1,11 @@
+# frozen_string_literal: true
+
 require './lib/mongoid/schema/event_schema'
 require './lib/logger/logger'
 
+# Mongodb model for Mongoid
 class EventModel
-  def get_events_number
+  def events_number
     Event.all.count
   end
 
@@ -24,7 +27,7 @@ class EventModel
     Event.find(query)
   end
 
-  def get_all
+  def query_all
     Log.logger.info('Querying all|')
     Event.all
   end

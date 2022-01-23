@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
+# Custom logger class
 class Log
   def self.logger
-    if @_logger.nil?
-      @_logger = Logger.new('logs/default.log')
-    end
+    @_logger = Logger.new('logs/default.log') if @_logger.nil?
     @_logger
   end
 end

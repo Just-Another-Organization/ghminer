@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Gem::Specification.new do |spec|
   spec.name = 'ja_ghminer'
   spec.version = '0.1-alpha'
