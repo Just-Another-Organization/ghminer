@@ -12,4 +12,3 @@ gem 'sinatra-cross_origin'
 gem 'thin'
 gem 'webrick'
 gem 'rufus-scheduler'
-gem "bundler-audit"
