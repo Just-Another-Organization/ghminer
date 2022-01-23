@@ -75,7 +75,6 @@ GEM
     multi_json (1.15.0)
     mustermann (1.1.1)
       ruby2_keywords (~> 0.0.1)
-    newrelic_rpm (8.2.0)
     nio4r (2.5.8)
     process-metrics (0.2.1)
       console (~> 1.8)
@@ -116,6 +115,7 @@ GEM
       rack-protection (= 2.1.0)
       sinatra (= 2.1.0)
       tilt (~> 2.0)
+    sinatra-cross_origin (0.4.0)
     sourcify (0.5.0)
       file-tail (>= 1.0.5)
       ruby2ruby (>= 1.2.5)
@@ -145,12 +145,12 @@ DEPENDENCIES
   falcon
   gh-archive
   mongoid (~> 7.0)
-  newrelic_rpm
   puma
   rack
   rufus-scheduler
   sinatra
   sinatra-contrib
+  sinatra-cross_origin
   thin
   webrick
 
