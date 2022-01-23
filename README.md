@@ -1,46 +1,46 @@
 
 # Table of Contents
 
-1.  [Introduction](#orgf9ddce4)
-    1.  [How it works](#orgf1b19a6)
-2.  [User Interface](#org9633b18)
-3.  [Prepare the environment](#org065e237)
-4.  [Configure the miner](#orgef56abe)
-    1.  [Time intervals](#org0af90ab)
-    2.  [Continuous update](#org858ba88)
-    3.  [Maximum number of events](#org3f83a01)
-    4.  [Last update period](#orgf71f8bf)
-    5.  [Keyword filters](#orgfaf7e99)
-5.  [Access to saved events](#orgeaf4078)
-    1.  [Query](#orgc7512c3)
-    2.  [Regex query](#org7442256)
-    3.  [Limit events number](#orgc50c926)
-6.  [Configure Mongoid](#orgb7ba99b)
+1.  [Introduction](#orgb786aa1)
+    1.  [How it works](#org8969920)
+2.  [User Interface](#orgfff744d)
+3.  [Prepare the environment](#org10fa91b)
+4.  [Configure the miner](#orgafd902e)
+    1.  [Time intervals](#org9afef82)
+    2.  [Continuous update](#org532d223)
+    3.  [Maximum number of events](#org88078f5)
+    4.  [Last update period](#org98edff2)
+    5.  [Keyword filters](#orge912b02)
+5.  [Access to saved events](#org77f6ab7)
+    1.  [Query](#orge409976)
+    2.  [Regex query](#org230515b)
+    3.  [Limit events number](#org2eb0e0c)
+6.  [Configure Mongoid](#org359b7d3)
 
 
 
-<a id="orgf9ddce4"></a>
+<a id="orgb786aa1"></a>
 
 # Introduction
 
 JA-GHMiner, an acronym for Just Another GitHub Miner is a *Just Another* project designed to facilitate the collection and management of data from operations performed on GitHub. JA-GHMiner relies on [GH Archive](https://www.gharchive.org/), a project to record public GitHub information, archive it, and make the information easily accessible for later analysis.
 
 
-<a id="orgf1b19a6"></a>
+<a id="org8969920"></a>
 
 ## How it works
 
 JA-GHMiner is a server written in the Ruby language that provides APIs through [Sinatra](https://github.com/sinatra/sinatra). With the help of [GitHub Archive Utils](https://github.com/intersimone999/gh-archive), JA-GHMiner once started will mine all events of type &ldquo;push&rdquo; (PushEvent) in the set time interval and save the content in a MongoDB database thanks to the library [Mongoid](https://github.com/mongodb/mongoid). The entire process is done through the use of the Docker Engine to ensure a service completely isolated from the system on which it is used.
 
 
-<a id="org9633b18"></a>
+<a id="orgfff744d"></a>
 
 # User Interface
 
 JA-GHMiner is present with a *User Interface* that in addition to allowing you to start the mining process also allows you to view the system logs.
 
 
-<a id="org065e237"></a>
+<a id="org10fa91b"></a>
 
 # Prepare the environment
 
@@ -73,7 +73,7 @@ You can also start the miner by directly calling the `/mine` API via the command
     curl -X GET 'localhost:${PORT}/mine'
 
 
-<a id="orgef56abe"></a>
+<a id="orgafd902e"></a>
 
 # Configure the miner
 
@@ -89,7 +89,7 @@ The mining process can be configured thanks to the configuration file present in
       keywords:
 
 
-<a id="org0af90ab"></a>
+<a id="org9afef82"></a>
 
 ## Time intervals
 
@@ -100,7 +100,7 @@ By default the miner downloads events for the last hour only. To set an initial 
       ending_timestamp: 1641168000 # Mining to: 3 January 2022 00:00:00
 
 
-<a id="org858ba88"></a>
+<a id="org532d223"></a>
 
 ## Continuous update
 
@@ -118,7 +118,7 @@ The update interval is configurable via `schedule_interval`.
 See [Rufus scheduler](https://github.com/jmettraux/rufus-scheduler#scheduling-handler-instances) for possible intervals. Also, note that GH Archive updates its data at hourly intervals. Also, the data is available a few minutes after the hour so JA-GHMiner works with a 10-minute delay to overcome this issue. This means that if the update is made at `10:04`, for example, it will not take into account the data for the interval `9:00-10:00`.
 
 
-<a id="org3f83a01"></a>
+<a id="org88078f5"></a>
 
 ## Maximum number of events
 
@@ -128,7 +128,7 @@ Due to the large number of events that could be saved in the database, it is pos
       max_events_number: 1000 # Set the maximum number of events to 1000
 
 
-<a id="orgf71f8bf"></a>
+<a id="org98edff2"></a>
 
 ## Last update period
 
@@ -138,7 +138,7 @@ JA-GHMiner keeps track of the last timestamp in which it performed the update to
       last_update_timestamp: 1640995200 # Update from: 1 January 2022 00:00:00
 
 
-<a id="orgfaf7e99"></a>
+<a id="orge912b02"></a>
 
 ## Keyword filters
 
@@ -151,7 +151,7 @@ You can configure the system to consider only those commits that contain keyword
                     # Example: Save 'Created DLT structure'; Do not save 'Created foo/DLT/bar structure'.
 
 
-<a id="orgeaf4078"></a>
+<a id="org77f6ab7"></a>
 
 # Access to saved events
 
@@ -159,7 +159,7 @@ JA-GHMiner allows you to access and query event information via two endpoints: `
 Both endpoints are `GET` calls that supports sending a `body` in the form of a `application/json` to define the query parameters.
 
 
-<a id="orgc7512c3"></a>
+<a id="orge409976"></a>
 
 ## Query
 
@@ -170,7 +170,7 @@ The `/query` endpoint allows you to get the saved events that match a given stri
     }
 
 
-<a id="org7442256"></a>
+<a id="org230515b"></a>
 
 ## Regex query
 
@@ -210,7 +210,7 @@ The `field` property can take values based on the structure of the event entity 
     }
 
 
-<a id="orgc50c926"></a>
+<a id="org2eb0e0c"></a>
 
 ## Limit events number
 
@@ -223,7 +223,7 @@ For both queries, it is possible to limit the maximum number of events thanks to
     }
 
 
-<a id="orgb7ba99b"></a>
+<a id="org359b7d3"></a>
 
 # Configure Mongoid
 
