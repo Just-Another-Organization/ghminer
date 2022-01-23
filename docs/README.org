@@ -1,6 +1,7 @@
 #+BEGIN_COMMENT
 This is a '.org' mode file written with the 'orgmode' provided by 'emacs'.
 This file is used as support to export documentation in markdown format (README.md) or other formats like latex or HTML.
+To export in markdown remember to use ox-gfm (https://github.com/larstvei/ox-gfm)
 #+END_COMMENT
 
 
