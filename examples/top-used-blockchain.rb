@@ -19,7 +19,7 @@ technologies = {
   'Hyperledger Burrow': 0,
   'Hyperledger Indy': 0,
   'Hedera Hashgraph': 0,
-  'Foot Trust': 0,
+  'Food Trust': 0,
   'Ripple': 0,
   'Quorum': 0,
   'Corda': 0,
@@ -32,7 +32,17 @@ technologies = {
   'Bitcoin': 0
 }
 
-raw_events = `LIMIT=0 ./query-with-regex.rb`
+options = ENV['OPTIONS']
+
+if defined?(ENV['KEYWORDS'])
+  keywords = ENV['KEYWORDS']
+else
+  technologies.each do |key, _value|
+    keywords = "#{keywords} #{key}"
+  end
+end
+
+raw_events = `#{options} KEYWORDS='#{keywords}' ./query-with-regex.rb`
 events = JSON[raw_events]['result']
 
 repo_names = []
