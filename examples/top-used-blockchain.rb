@@ -70,6 +70,7 @@ progress = 0
 repo_names.each do |repo_name|
   repo_url = GITHUB_BASE_URL + repo_name
 
+  $stdout.flush
   printf "Checking #{progress}/#{total}: #{repo_name}\r"
 
   content = `wget -qO- #{repo_url} 2>/dev/null`

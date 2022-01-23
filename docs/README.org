@@ -186,3 +186,6 @@ For both queries, it is possible to limit the maximum number of events thanks to
 
 * Configure Mongoid
 You can configure the ~Mongoid~ settings as you wont by configuring the ~lib/config/mongoid.yml~ file.
+
+* Examples
+You can find some examples of how to use JA-GHMiner features in the ~examples~ folder.
