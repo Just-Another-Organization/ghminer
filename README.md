@@ -45,7 +45,7 @@ JA-GHMiner is present with a `User Interface` that in addition to allowing you t
 First, download the repository.
 
 ```sh
-git clone https://github.com/ZappaBoy/JA-GHMiner
+git clone https://github.com/Just-Another-Organization/JA-GHMiner.git
 ```
 
 Next, access the folder and create a `.env` file.
