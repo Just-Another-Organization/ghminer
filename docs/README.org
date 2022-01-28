@@ -29,7 +29,7 @@ JA-GHMiner is present with a ~User Interface~ that in addition to allowing you t
 * Prepare the environment
 First, download the repository.
 #+BEGIN_SRC sh
-git clone https://github.com/ZappaBoy/JA-GHMiner
+git clone https://github.com/Just-Another-Organization/JA-GHMiner.git
 #+END_SRC
 
 Next, access the folder and create a ~.env~ file.
